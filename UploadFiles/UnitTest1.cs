@@ -5,6 +5,7 @@ using OpenQA.Selenium.Chrome;
 using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Collections.Specialized;
 
 namespace UploadFiles
 {
@@ -21,39 +22,52 @@ namespace UploadFiles
             {"xls", Mime.XLS },
             {"xlsx", Mime.XLSX }
         };
+        private static NameValueCollection appSettings = ConfigurationManager.AppSettings;
+        private static bool HasGoodPHP;
 
+        private IWebDriver driver;
 
         [ClassInitialize]
-        public static void Init(TestContext context)
+        public static void ClassInit(TestContext context)
         {
             string currentDirectory = Directory.GetCurrentDirectory();
             string filesPath = Path.GetDirectoryName(Path.GetDirectoryName(currentDirectory)) + @"\Files";
             Files = Directory.GetFiles(filesPath);
+            Boolean.TryParse(appSettings["HasPHPVersionHeigherThen5.5"], out HasGoodPHP);
+        }
+
+        [TestInitialize]
+        public void TestInit()
+        {
+            driver = new ChromeDriver(appSettings["ChromeDriverPath"]);
+            driver.Url = appSettings["Url"];
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            driver.Quit();
         }
 
         [TestMethod]
         public void TestMethod1()
         {
-            var appSettings = ConfigurationManager.AppSettings;
-            IWebDriver d = new ChromeDriver(appSettings["ChromeDriverPath"]);
-            d.Url = appSettings["Url"];
             foreach (var file in Files)
             {
                 //php 5.5 bug
-                if(Path.GetFileNameWithoutExtension(file) == "PPT")
+                if(!HasGoodPHP && Path.GetFileNameWithoutExtension(file) == "PPT")
                 {
                     continue;
                 }
-                IWebElement fileInput = d.FindElement(By.CssSelector("input[type='file'"));
-                IWebElement submit = d.FindElement(By.CssSelector("input[type='submit']"));
+                IWebElement fileInput = driver.FindElement(By.CssSelector("input[type='file'"));
+                IWebElement submit = driver.FindElement(By.CssSelector("input[type='submit']"));
                 fileInput.SendKeys(file);
                 submit.Click();
-                string mimeType = d.FindElement(By.ClassName("mime-type")).Text;
+                string mimeType = driver.FindElement(By.ClassName("mime-type")).Text;
                 string extension = Path.GetExtension(file).Trim('.');
                 Assert.AreEqual(extensionToMime[extension].GetDescription(), mimeType);
-                d.Navigate().Back();
+                driver.Navigate().Back();
             }
-            d.Quit();
         }
     }
 }
