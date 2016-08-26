@@ -4,7 +4,7 @@ You should upload test.php and test.html to your server.
 
 Then, edit App.config with the correct values.
 
-Pay Attention !
+**Pay Attention !**
 
 There is a bug in PHP 5.5. When you upload a ppt file and use finfo to get his extension, PHP crashes.
 
