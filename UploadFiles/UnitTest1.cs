@@ -59,7 +59,7 @@ namespace UploadFiles
                 {
                     continue;
                 }
-                IWebElement fileInput = driver.FindElement(By.CssSelector("input[type='file'"));
+                IWebElement fileInput = driver.FindElement(By.CssSelector("input[type='file']"));
                 IWebElement submit = driver.FindElement(By.CssSelector("input[type='submit']"));
                 fileInput.SendKeys(file);
                 submit.Click();
